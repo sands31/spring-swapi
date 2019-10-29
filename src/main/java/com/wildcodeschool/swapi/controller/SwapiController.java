@@ -23,10 +23,28 @@ public class SwapiController {
 
     @GetMapping("/planet")
     public String planet(Model model, @RequestParam Long id) {
-
+    	        
+    	//Récupération du JSON de l'API
+        WebClient webClient = WebClient.create(SWAPI_URL);
+        Mono<String> call = webClient.get()
+        		.uri(uriBuilder -> uriBuilder
+        				.path("/planets/{id}/")
+        				.build(id))
+        		.retrieve()
+        		.bodyToMono(String.class); 
+        
+        String response = call.block();
+        
+        //Mapping du JSON
+        ObjectMapper objectMapper = new ObjectMapper();
         Planet planetObject = null;
-        // TODO : call the API and retrieve the planet
-
+        try {
+        	planetObject = objectMapper.readValue(response, Planet.class);
+        } catch (JsonProcessingException e) {
+        	e.printStackTrace();
+        }
+    	
+        //Retour de l'objet vers la vue
         model.addAttribute("planetInfos", planetObject);
 
         return "planet";
